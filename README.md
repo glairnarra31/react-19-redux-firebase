@@ -1,4 +1,4 @@
-# react-redux-firebase
+# Updated version of react-redux-firebase for react 19
 
 [![NPM version][npm-image]][npm-url]
 [![NPM downloads][npm-downloads-image]][npm-url]
@@ -37,7 +37,7 @@ The [Material Example](https://github.com/prescottprue/react-redux-firebase/tree
 ## Installation
 
 ```bash
-npm install --save react-redux-firebase
+npm install --save react-19-redux-firebase
 ```
 
 This assumes you are using [npm](https://www.npmjs.com/) as your package manager.
@@ -65,7 +65,7 @@ import { createStore, combineReducers, compose } from 'redux'
 import {
   ReactReduxFirebaseProvider,
   firebaseReducer
-} from 'react-redux-firebase'
+} from 'react-19-redux-firebase'
 // import { createFirestoreInstance, firestoreReducer } from 'redux-firestore' // <- needed if using firestore
 
 const fbConfig = {}
@@ -120,7 +120,7 @@ The Firebase instance can then be grabbed from context within your components (`
 
 ```jsx
 import React from 'react'
-import { useFirebase } from 'react-redux-firebase'
+import { useFirebase } from 'react-19-redux-firebase'
 
 export default function Todos() {
   const firebase = useFirebase()
@@ -145,7 +145,7 @@ export default function Todos() {
 import React from 'react'
 import PropTypes from 'prop-types'
 import { useSelector } from 'react-redux'
-import { useFirebaseConnect, isLoaded, isEmpty } from 'react-redux-firebase'
+import { useFirebaseConnect, isLoaded, isEmpty } from 'react-19-redux-firebase'
 
 export default function Todos() {
   useFirebaseConnect([
@@ -183,7 +183,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
 import { useSelector } from 'react-redux'
-import { useFirebaseConnect, useFirebase } from 'react-redux-firebase'
+import { useFirebaseConnect, useFirebase } from 'react-19-redux-firebase'
 import { useParams } from 'react-router-dom'
 
 export default function Todo() {
@@ -222,7 +222,7 @@ export default function Todo() {
 ```jsx
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { useFirebase, isLoaded, isEmpty } from 'react-redux-firebase'
+import { useFirebase, isLoaded, isEmpty } from 'react-19-redux-firebase'
 
 function TodosList() {
   const todos = useSelector((state) => state.firebase.ordered.todos)
