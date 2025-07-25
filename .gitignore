@@ -19,9 +19,9 @@ _book/**
 _site/**
 coverage
 .nyc_output
-dist
-es
-lib
+# dist
+# es
+# lib
 _book
 # Logs
 *.log

@@ -1,0 +1,2 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=useFirebase;var _react=require("react"),_ReactReduxFirebaseContext=_interopRequireDefault(require("./ReactReduxFirebaseContext"));function _interopRequireDefault(e){return e&&e.__esModule?e:{default:e}}function useFirebase(){return(0,_react.useContext)(_ReactReduxFirebaseContext.default)}module.exports=exports.default;
+//# sourceMappingURL=useFirebase.js.map
