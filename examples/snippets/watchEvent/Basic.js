@@ -9,11 +9,11 @@ class SomeThing extends PureComponent {
     todos: PropTypes.object
   }
 
-  componentWillMount () {
+  componentDidMount () {
     this.props.firebase.watchEvent('value', 'todos')
   }
 
-  componentWillUnMount () {
+  componentWillUnmount () {
     this.props.firebase.unWatchEvent('value', 'todos')
   }
 

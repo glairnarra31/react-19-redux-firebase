@@ -65,18 +65,17 @@ export default function firestoreConnect(queriesConfig = []) {
         }
       }
 
-      /* eslint-disable camelcase */
-      UNSAFE_componentWillReceiveProps(np) {
-        /* eslint-enable camelcase */
+      componentDidUpdate(prevProps) {
         const { firestore } = this.props
         const inputAsFunc = createCallable(queriesConfig)
-        const data = inputAsFunc(np, this.props)
+        const prevData = inputAsFunc(prevProps, prevProps)
+        const currentData = inputAsFunc(this.props, this.props)
 
         // Check for changes in the listener configs
-        if (this.firestoreIsEnabled && !isEqual(data, this.prevData)) {
-          const changes = getChanges(data, this.prevData)
+        if (this.firestoreIsEnabled && !isEqual(currentData, prevData)) {
+          const changes = getChanges(currentData, prevData)
 
-          this.prevData = data
+          this.prevData = currentData
 
           // Remove listeners for inactive subscriptions
           firestore.unsetListeners(changes.removed)

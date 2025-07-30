@@ -2,6 +2,47 @@ import { get, size, pick } from 'lodash'
 import { unset } from 'lodash/fp'
 
 /**
+ * Immutably set a value at a deep path in an object (React 19 compatible)
+ * @param {string} path - Dot notation path (e.g., 'users.123.name')
+ * @param {any} value - Value to set
+ * @param {object} state - Current state object
+ * @returns {object} New state object with value set
+ * @private
+ */
+export function setDeepPath(path, value, state) {
+  if (!path) return { ...state, ...value }
+  
+  const keys = path.split('.')
+  const result = { ...state }
+  let current = result
+  
+  // Navigate to the parent of the target property
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i]
+    current[key] = current[key] ? { ...current[key] } : {}
+    current = current[key]
+  }
+  
+  // Set the final value
+  current[keys[keys.length - 1]] = value
+  return result
+}
+
+/**
+ * Immutably merge an object at a deep path (React 19 compatible)
+ * @param {string} path - Dot notation path
+ * @param {object} value - Object to merge
+ * @param {object} state - Current state object
+ * @returns {object} New state object with merged value
+ * @private
+ */
+export function mergeDeepPath(path, value, state) {
+  const existingValue = get(state, path, {})
+  const mergedValue = { ...existingValue, ...value }
+  return setDeepPath(path, mergedValue, state)
+}
+
+/**
  * Create a path array from path string
  * @param {string} path - Path seperated with slashes
  * @returns {Array} Path as Array
@@ -32,9 +73,10 @@ export function getDotStrPath(path) {
 }
 
 /**
- * Combine reducers utility (abreveated version of redux's combineReducer).
+ * Combine reducers utility (React 19 compatible version).
  * Turns an object whose values are different reducer functions, into a single
- * reducer function.
+ * reducer function. This version includes state change detection to prevent
+ * unnecessary re-renders in React 19's concurrent mode.
  * @param {object} reducers An object whose values correspond to different
  * reducer functions that need to be combined into one.
  * @returns {Function} A reducer function that invokes every reducer inside the
@@ -42,15 +84,26 @@ export function getDotStrPath(path) {
  * @private
  */
 export function combineReducers(reducers) {
-  return (state = {}, action) => {
-    return Object.keys(reducers).reduce((nextState, key) => {
-      nextState[key] = reducers[key](
-        // eslint-disable-line no-param-reassign
-        state[key],
-        action
-      )
-      return nextState
-    }, {})
+  // Initialize state shape by calling each reducer once
+  const defaultState = {}
+  for (const key in reducers) {
+    defaultState[key] = reducers[key](undefined, { type: '@@INIT' })
+  }
+  
+  return (state = defaultState, action) => {
+    let hasChanged = false
+    const nextState = {}
+    
+    for (const key in reducers) {
+      const reducer = reducers[key]
+      const previousStateForKey = state[key]
+      const nextStateForKey = reducer(previousStateForKey, action)
+      
+      nextState[key] = nextStateForKey
+      hasChanged = hasChanged || nextStateForKey !== previousStateForKey
+    }
+    
+    return hasChanged ? nextState : state
   }
 }
 

@@ -1,12 +1,13 @@
 import { pick, omit, get, isObject } from 'lodash'
-import { setWith, assign } from 'lodash/fp'
 import { actionTypes } from './constants'
 import {
   getSlashStrPath,
   getDotStrPath,
   recursiveUnset,
   combineReducers,
-  preserveValuesFromState
+  preserveValuesFromState,
+  setDeepPath,
+  mergeDeepPath
 } from './utils/reducers'
 
 const {
@@ -148,18 +149,19 @@ function createDataReducer(actionKey = 'data') {
   return function dataReducer(state = {}, action) {
     switch (action.type) {
       case SET:
-        return setWith(
-          Object,
+        return setDeepPath(
           getDotStrPath(action.path),
           action[actionKey],
           state
         )
       case MERGE:
-        const previousData = get(state, getDotStrPath(action.path), {}) // eslint-disable-line no-case-declarations
-        const mergedData = assign(previousData, action[actionKey]) // eslint-disable-line no-case-declarations
-        return setWith(Object, getDotStrPath(action.path), mergedData, state)
+        return mergeDeepPath(
+          getDotStrPath(action.path),
+          action[actionKey],
+          state
+        )
       case NO_VALUE:
-        return setWith(Object, getDotStrPath(action.path), null, state)
+        return setDeepPath(getDotStrPath(action.path), null, state)
       case REMOVE:
         if (actionKey === 'data') {
           return recursiveUnset(getDotStrPath(action.path), state)

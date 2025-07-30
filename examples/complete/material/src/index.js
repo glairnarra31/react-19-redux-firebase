@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { initScripts } from './utils'
 import createStore from './store/createStore'
 import { version } from '../package.json'
@@ -23,10 +23,9 @@ const initialState = window.___INITIAL_STATE__ || {
 const store = createStore(initialState)
 const routes = require('./routes/index').default(store)
 
-ReactDOM.render(
-  <App store={store} routes={routes} />,
-  document.getElementById('root')
-)
+const container = document.getElementById('root')
+const root = createRoot(container)
+root.render(<App store={store} routes={routes} />)
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

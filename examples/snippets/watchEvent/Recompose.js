@@ -24,7 +24,7 @@ SomeThing.propTypes = {
 const enhance = compose(
   withFirebase, // add props.firebase
   lifecycle({
-    componentWillMount () {
+    componentDidMount () {
       this.props.firebase.watchEvent('value', 'todos')
     },
     componentWillUnmount () {

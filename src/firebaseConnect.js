@@ -104,23 +104,22 @@ export default function firebaseConnect(queriesConfig = []) {
         unWatchEvents(firebase, dispatch, this._firebaseEvents)
       }
 
-      /* eslint-disable camelcase */
-      UNSAFE_componentWillReceiveProps(np) {
-        /* eslint-enable camelcase */
+      componentDidUpdate(prevProps) {
         const { firebase, dispatch } = this.props
         const inputAsFunc = createCallable(queriesConfig)
-        const data = inputAsFunc(np, this.store)
+        const prevData = inputAsFunc(prevProps, prevProps)
+        const currentData = inputAsFunc(this.props, this.props)
 
         // Handle a data parameter having changed
-        if (!isEqual(data, this.prevData)) {
-          const itemsToSubscribe = differenceWith(data, this.prevData, isEqual)
+        if (!isEqual(currentData, prevData)) {
+          const itemsToSubscribe = differenceWith(currentData, prevData, isEqual)
           const itemsToUnsubscribe = differenceWith(
-            this.prevData,
-            data,
+            prevData,
+            currentData,
             isEqual
           )
 
-          this.prevData = data
+          this.prevData = currentData
           // UnWatch all current events
           unWatchEvents(
             firebase,
@@ -128,7 +127,7 @@ export default function firebaseConnect(queriesConfig = []) {
             getEventsFromInput(itemsToUnsubscribe)
           )
           // Get watch events from new data
-          this._firebaseEvents = getEventsFromInput(data)
+          this._firebaseEvents = getEventsFromInput(currentData)
 
           // Watch new events
           watchEvents(firebase, dispatch, getEventsFromInput(itemsToSubscribe))

@@ -23,7 +23,7 @@ function ReduxFirestoreProvider(props = {}) {
     dispatch,
     firebase,
     createFirestoreInstance,
-    initializeAuth
+    initializeAuth = true
   } = props
   const extendedFirestoreInstance = React.useMemo(() => {
     const extendedFirebaseInstance = firebase._reactReduxFirebaseExtended
@@ -48,9 +48,6 @@ function ReduxFirestoreProvider(props = {}) {
   )
 }
 
-ReduxFirestoreProvider.defaultProps = {
-  initializeAuth: true
-}
 
 ReduxFirestoreProvider.propTypes = {
   children: PropTypes.node,
