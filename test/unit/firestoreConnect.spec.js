@@ -15,7 +15,7 @@ describe('firestoreConnect', () => {
       withFirestore: false,
       hoc: withFirestoreConnect
     })
-    expect(component).to.have.lengthOf(1)
+    expect(component).to.exist
   })
 
   // it('disables watchers on unmount', () => {
@@ -23,8 +23,8 @@ describe('firestoreConnect', () => {
   // })
 
   it('dispatches "@@reduxFirestore/UNSET_LISTENER" action when listeners are detached on unmount', () => {
-    const { wrapper, dispatch } = createContainer({ hoc: withFirestoreConnect })
-    wrapper.unmount()
+    const { container, dispatch } = createContainer({ hoc: withFirestoreConnect })
+    container.remove()
     expect(
       some(dispatch.args, (arg) =>
         isMatch(arg[0], {

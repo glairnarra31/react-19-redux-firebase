@@ -24,9 +24,18 @@
       "comments": false
     },
     "test": {
+      "presets": [
+        ["@babel/preset-env", {
+          "targets": {
+            "node": "current"
+          }
+        }],
+        "@babel/preset-react"
+      ],
       "plugins": [
         "@babel/plugin-transform-runtime",
         "@babel/transform-async-to-generator",
+        "@babel/plugin-transform-modules-commonjs",
         ["module-resolver", {
          "root": ["./src"]
        }]

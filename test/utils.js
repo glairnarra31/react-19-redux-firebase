@@ -7,7 +7,7 @@ import {
   reducer as firestoreReducer,
   createFirestoreInstance
 } from 'redux-firestore'
-import { mount } from 'enzyme'
+import { render, cleanup } from '@testing-library/react'
 import ReactReduxFirebaseProvider from '../src/ReactReduxFirebaseProvider'
 
 export const storeWithFirebase = () => {
@@ -416,6 +416,11 @@ export const createContainer = ({
       delete firebase._
     }
 
+    // Add method to update state for testing
+    updateState = (newState) => {
+      this.setState(newState)
+    }
+
     render() {
       let children = (
         <WrappedComponent
@@ -438,12 +443,35 @@ export const createContainer = ({
       )
     }
   }
-  const wrapper = mount(<Container {...additionalComponentProps} />)
+  let containerRef = null
+  const ContainerWithRef = React.forwardRef((props, ref) => (
+    <Container ref={ref} {...props} />
+  ))
+  
+  const rendered = render(
+    <ContainerWithRef 
+      ref={ref => { containerRef = ref }} 
+      {...additionalComponentProps} 
+    />
+  )
+
+  // Create a wrapper object that mimics the old Enzyme API
+  const wrapper = {
+    setState: (newState) => {
+      if (containerRef) {
+        containerRef.updateState(newState)
+      }
+    },
+    unmount: () => {
+      rendered.unmount()
+    }
+  }
 
   return {
+    container: rendered.container,
     wrapper,
-    leaf: wrapper.find(component),
-    component: wrapper.find(WrappedComponent),
+    leaf: rendered.container.querySelector('#leaf'),
+    component: rendered.container.querySelector('#leaf'),
     dispatch: store.dispatch,
     firebase,
     store

@@ -6,16 +6,12 @@ const sinon = require('sinon')
 const chaiAsPromised = require('chai-as-promised')
 const sinonChai = require('sinon-chai')
 const JSDOM = require('jsdom').JSDOM
-const chaiEnzyme = require('chai-enzyme')
 const FirebaseServer = require('firebase-server')
 const Firebase = require('firebase')
 require('firebase/firestore')
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest
 const WebSocket = require('ws')
-const Enzyme = require('enzyme')
-const Adapter = require('@wojtekmaj/enzyme-adapter-react-17')
-
-Enzyme.configure({ adapter: new Adapter() })
+require('@testing-library/jest-dom')
 
 // Firebase Instance Setup (fake instance connected to firebase-server)
 const fbConfig = {
@@ -46,7 +42,6 @@ new FirebaseServer(5000, 'localhost.firebaseio.test', {
 // Chai Plugins
 chai.use(chaiAsPromised)
 chai.use(sinonChai)
-chai.use(chaiEnzyme())
 
 // globals
 global.Firebase = Firebase
