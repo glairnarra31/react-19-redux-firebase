@@ -6,13 +6,11 @@ const env = process.env.NODE_ENV
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 const config = {
   module: {
-    rules: [
-      { test: /\.js$/, loaders: ['babel-loader'], exclude: /node_modules/ }
-    ]
+    rules: [{ test: /\.js$/, use: ['babel-loader'], exclude: /node_modules/ }]
   },
   output: {
     library: 'ReactReduxFirebase',
@@ -46,7 +44,9 @@ if (process.env.SIZE) {
 }
 
 if (env === 'production') {
-  config.plugins.push(new UglifyJsPlugin())
+  config.optimization = {
+    minimizer: [new TerserPlugin()]
+  }
 }
 
 config.plugins.push(

@@ -101,13 +101,13 @@ const mockFirebase = {
       .returns(Promise.resolve({ uid: 'test' })),
     signInWithCustomToken: sinon.stub().callsFake((token) => {
       if (token === 'invalidToken') {
-        return Promise.reject({ code: 'auth/invalid-custom-token' })
+        return Promise.reject(new Error('auth/invalid-custom-token'))
       }
       return Promise.resolve({ uid: 'test' })
     }),
     signInAndRetrieveDataWithCustomToken: sinon.stub().callsFake((token) => {
       if (token === 'invalidToken') {
-        return Promise.reject({ code: 'auth/invalid-custom-token' })
+        return Promise.reject(new Error('auth/invalid-custom-token'))
       }
       return Promise.resolve({ uid: 'test' })
     }),

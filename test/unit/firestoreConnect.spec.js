@@ -23,7 +23,9 @@ describe('firestoreConnect', () => {
   // })
 
   it('dispatches "@@reduxFirestore/UNSET_LISTENER" action when listeners are detached on unmount', () => {
-    const { container, dispatch } = createContainer({ hoc: withFirestoreConnect })
+    const { container, dispatch } = createContainer({
+      hoc: withFirestoreConnect
+    })
     container.remove()
     expect(
       some(dispatch.args, (arg) =>

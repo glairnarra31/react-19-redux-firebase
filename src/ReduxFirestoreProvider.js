@@ -48,7 +48,6 @@ function ReduxFirestoreProvider(props = {}) {
   )
 }
 
-
 ReduxFirestoreProvider.propTypes = {
   children: PropTypes.node,
   config: PropTypes.object.isRequired,

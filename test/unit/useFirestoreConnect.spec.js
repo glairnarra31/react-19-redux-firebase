@@ -63,7 +63,9 @@ describe('useFirestoreConnect', () => {
   })
 
   it('disables watchers on unmount', async () => {
-    const { container, dispatch } = createContainer({ component: TestComponent })
+    const { container, dispatch } = createContainer({
+      component: TestComponent
+    })
     await sleep()
     container.remove()
     await sleep()

@@ -1,4 +1,4 @@
-import { pick, omit, get, isObject } from 'lodash'
+import { pick, omit, isObject } from 'lodash'
 import { actionTypes } from './constants'
 import {
   getSlashStrPath,
@@ -149,11 +149,7 @@ function createDataReducer(actionKey = 'data') {
   return function dataReducer(state = {}, action) {
     switch (action.type) {
       case SET:
-        return setDeepPath(
-          getDotStrPath(action.path),
-          action[actionKey],
-          state
-        )
+        return setDeepPath(getDotStrPath(action.path), action[actionKey], state)
       case MERGE:
         return mergeDeepPath(
           getDotStrPath(action.path),

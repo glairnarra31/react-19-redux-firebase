@@ -11,18 +11,18 @@ import { unset } from 'lodash/fp'
  */
 export function setDeepPath(path, value, state) {
   if (!path) return { ...state, ...value }
-  
+
   const keys = path.split('.')
   const result = { ...state }
   let current = result
-  
+
   // Navigate to the parent of the target property
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i]
     current[key] = current[key] ? { ...current[key] } : {}
     current = current[key]
   }
-  
+
   // Set the final value
   current[keys[keys.length - 1]] = value
   return result
@@ -89,20 +89,20 @@ export function combineReducers(reducers) {
   for (const key in reducers) {
     defaultState[key] = reducers[key](undefined, { type: '@@INIT' })
   }
-  
+
   return (state = defaultState, action) => {
     let hasChanged = false
     const nextState = {}
-    
+
     for (const key in reducers) {
       const reducer = reducers[key]
       const previousStateForKey = state[key]
       const nextStateForKey = reducer(previousStateForKey, action)
-      
+
       nextState[key] = nextStateForKey
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey
     }
-    
+
     return hasChanged ? nextState : state
   }
 }

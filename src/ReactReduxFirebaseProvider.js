@@ -54,7 +54,6 @@ function ReactReduxFirebaseProvider(props = {}) {
   )
 }
 
-
 ReactReduxFirebaseProvider.propTypes = {
   children: PropTypes.node,
   config: PropTypes.object.isRequired,

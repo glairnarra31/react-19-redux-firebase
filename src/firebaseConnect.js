@@ -112,7 +112,11 @@ export default function firebaseConnect(queriesConfig = []) {
 
         // Handle a data parameter having changed
         if (!isEqual(currentData, prevData)) {
-          const itemsToSubscribe = differenceWith(currentData, prevData, isEqual)
+          const itemsToSubscribe = differenceWith(
+            currentData,
+            prevData,
+            isEqual
+          )
           const itemsToUnsubscribe = differenceWith(
             prevData,
             currentData,
