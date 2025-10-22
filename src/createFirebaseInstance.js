@@ -5,18 +5,21 @@ import { mapWithFirebaseAndDispatch } from './utils/actions'
 import * as authActions from './actions/auth'
 import * as queryActions from './actions/query'
 import * as storageActions from './actions/storage'
+import { getCompatibleFirebaseInstance } from './utils/reactNativeFirebaseHelpers'
 
 let firebaseInstance
 
 /**
  * Create an extended firebase instance that has methods attached
  * which dispatch redux actions.
- * @param {object} firebase - Firebase instance which to extend
+ * @param {object} firebase - Firebase instance which to extend (supports web SDK and @react-native-firebase)
  * @param {object} configs - Configuration object
  * @param {Function} dispatch - Action dispatch function
  * @returns {object} Extended Firebase instance
  */
 export default function createFirebaseInstance(firebase, configs, dispatch) {
+  // Ensure compatibility with @react-native-firebase
+  firebase = getCompatibleFirebaseInstance(firebase) // eslint-disable-line no-param-reassign
   /* istanbul ignore next: Logging is external */
   // Enable Logging based on config (handling instances without i.e RNFirebase)
   // NOTE: This will be removed in a future version
