@@ -22,13 +22,13 @@ export function isReactNativeFirebase(firebase) {
   }
 
   // v6-v21 API: Check if it has app() function that returns an app with native modules
-  if (
-    firebase &&
-    typeof firebase.app === 'function'
-  ) {
+  if (firebase && typeof firebase.app === 'function') {
     try {
       const app = firebase.app()
-      if (app && (app.native || (app.utils && typeof app.utils === 'function'))) {
+      if (
+        app &&
+        (app.native || (app.utils && typeof app.utils === 'function'))
+      ) {
         return true
       }
     } catch (e) {
@@ -71,12 +71,17 @@ export function createReactNativeCompatWrapper(rnFirebase) {
   }
 
   // Determine if this is v22+ modular API (FirebaseApp instance) or legacy API
-  const isModularAPI = rnFirebase && rnFirebase.name !== undefined && rnFirebase.options !== undefined
+  const isModularAPI =
+    rnFirebase &&
+    rnFirebase.name !== undefined &&
+    rnFirebase.options !== undefined
 
   // Get the app instance
   const firebaseApp = isModularAPI
     ? rnFirebase
-    : (typeof rnFirebase.app === 'function' ? rnFirebase.app() : rnFirebase)
+    : typeof rnFirebase.app === 'function'
+    ? rnFirebase.app()
+    : rnFirebase
 
   // Cache service instances to avoid recreating them on every call
   const serviceCache = {}
@@ -102,7 +107,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           } catch (e) {
             throw new Error(
               '@react-native-firebase/auth module not found. ' +
-              'Please install it: npm install @react-native-firebase/auth'
+                'Please install it: npm install @react-native-firebase/auth'
             )
           }
         }
@@ -124,7 +129,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           } catch (e) {
             throw new Error(
               '@react-native-firebase/database module not found. ' +
-              'Please install it: npm install @react-native-firebase/database'
+                'Please install it: npm install @react-native-firebase/database'
             )
           }
         }
@@ -146,7 +151,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           } catch (e) {
             throw new Error(
               '@react-native-firebase/firestore module not found. ' +
-              'Please install it: npm install @react-native-firebase/firestore'
+                'Please install it: npm install @react-native-firebase/firestore'
             )
           }
         }
@@ -168,7 +173,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           } catch (e) {
             throw new Error(
               '@react-native-firebase/storage module not found. ' +
-              'Please install it: npm install @react-native-firebase/storage'
+                'Please install it: npm install @react-native-firebase/storage'
             )
           }
         }
@@ -178,7 +183,8 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     }
   }
 
-  // Add database ServerValue for timestamps (lazy initialization)
+  // Add database.ServerValue for timestamps
+  // This is accessed as firebase.database.ServerValue (not firebase.database().ServerValue)
   if (!isModularAPI) {
     // For legacy API, we can set it directly
     try {
@@ -190,6 +196,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     }
   } else {
     // For modular API v22+, ServerValue is available on the database instance itself
+    // We need to access it via wrapper.database() but expose it on wrapper.database
     Object.defineProperty(wrapper.database, 'ServerValue', {
       get() {
         try {
@@ -205,7 +212,8 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     })
   }
 
-  // Add firestore FieldValue for timestamps (lazy initialization)
+  // Add firestore.FieldValue for timestamps
+  // This is accessed as firebase.firestore.FieldValue (not firebase.firestore().FieldValue)
   if (!isModularAPI) {
     // For legacy API, we can set it directly
     try {
@@ -217,6 +225,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     }
   } else {
     // For modular API v22+, FieldValue is available on the firestore instance itself
+    // We need to access it via wrapper.firestore() but expose it on wrapper.firestore
     Object.defineProperty(wrapper.firestore, 'FieldValue', {
       get() {
         try {
@@ -226,6 +235,32 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           return fsInstance.FieldValue || { serverTimestamp: () => null }
         } catch (e) {
           return { serverTimestamp: () => null }
+        }
+      },
+      configurable: true
+    })
+  }
+
+  // Add storage.TaskEvent for upload progress monitoring
+  // This is accessed as firebase.storage.TaskEvent (not firebase.storage().TaskEvent)
+  if (!isModularAPI) {
+    // For legacy API, we can set it directly
+    try {
+      wrapper.storage.TaskEvent = rnFirebase.storage.TaskEvent
+    } catch (e) {
+      // Skip if not available
+    }
+  } else {
+    // For modular API v22+, TaskEvent is available on the storage instance
+    Object.defineProperty(wrapper.storage, 'TaskEvent', {
+      get() {
+        try {
+          // Get the cached storage instance
+          const storageInstance = wrapper.storage()
+          // In v22, TaskEvent is on the storage instance
+          return storageInstance.TaskEvent || {}
+        } catch (e) {
+          return {}
         }
       },
       configurable: true
