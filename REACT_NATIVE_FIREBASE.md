@@ -4,7 +4,9 @@ This library now has built-in support for **@react-native-firebase** (v6+ and v2
 
 ## Overview
 
-The library automatically detects when you're using `@react-native-firebase` and creates a compatibility layer that makes it work seamlessly with the existing react-redux-firebase API. Both the legacy API (v6-v21) and the modern modular API (v22+) are supported.
+The library automatically detects when you're using `@react-native-firebase` and creates a compatibility layer that makes it work seamlessly with the existing react-redux-firebase API. Both the legacy API (v6-v21) and the modern modular API (v22+) are fully supported.
+
+**Note for v22+ users:** The library uses the modular API functions (`getAuth()`, `getDatabase()`, `getFirestore()`, `getStorage()`) internally and caches the service instances. This avoids deprecation warnings while ensuring methods like `.auth()`, `.database()`, `.firestore()`, and `.storage()` work correctly with your existing code.
 
 ## Installation
 

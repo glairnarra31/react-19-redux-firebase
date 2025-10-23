@@ -78,8 +78,11 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     ? rnFirebase
     : (typeof rnFirebase.app === 'function' ? rnFirebase.app() : rnFirebase)
 
-  // For v22+ modular API, we need to dynamically import and use getAuth, getDatabase, etc.
-  // Since we can't use dynamic imports here, we'll create lazy getters that use the modular functions
+  // Cache service instances to avoid recreating them on every call
+  const serviceCache = {}
+
+  // For v22+ modular API, we use the getAuth, getDatabase, etc. functions
+  // and cache the instances to avoid deprecation warnings from default exports
   const wrapper = {
     _reactNativeFirebaseCompatWrapped: true,
     app: firebaseApp,
@@ -87,18 +90,23 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     // Auth service accessor
     auth() {
       if (isModularAPI) {
-        // v22+ modular: Need to import { getAuth } from '@react-native-firebase/auth'
-        // Try to require it dynamically
-        try {
-          // eslint-disable-next-line global-require
-          const authModule = require('@react-native-firebase/auth')
-          return authModule.getAuth ? authModule.getAuth(firebaseApp) : authModule.default(firebaseApp)
-        } catch (e) {
-          throw new Error(
-            '@react-native-firebase/auth module not found. ' +
-            'Please install it: npm install @react-native-firebase/auth'
-          )
+        // v22+ modular: Use getAuth() and cache the instance
+        if (!serviceCache.auth) {
+          try {
+            // eslint-disable-next-line global-require
+            const authModule = require('@react-native-firebase/auth')
+            // Use getAuth if available, otherwise fall back to default
+            serviceCache.auth = authModule.getAuth
+              ? authModule.getAuth(firebaseApp)
+              : authModule.default(firebaseApp)
+          } catch (e) {
+            throw new Error(
+              '@react-native-firebase/auth module not found. ' +
+              'Please install it: npm install @react-native-firebase/auth'
+            )
+          }
         }
+        return serviceCache.auth
       }
       return rnFirebase.auth()
     },
@@ -106,16 +114,21 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     // Database service accessor
     database() {
       if (isModularAPI) {
-        try {
-          // eslint-disable-next-line global-require
-          const databaseModule = require('@react-native-firebase/database')
-          return databaseModule.getDatabase ? databaseModule.getDatabase(firebaseApp) : databaseModule.default(firebaseApp)
-        } catch (e) {
-          throw new Error(
-            '@react-native-firebase/database module not found. ' +
-            'Please install it: npm install @react-native-firebase/database'
-          )
+        if (!serviceCache.database) {
+          try {
+            // eslint-disable-next-line global-require
+            const databaseModule = require('@react-native-firebase/database')
+            serviceCache.database = databaseModule.getDatabase
+              ? databaseModule.getDatabase(firebaseApp)
+              : databaseModule.default(firebaseApp)
+          } catch (e) {
+            throw new Error(
+              '@react-native-firebase/database module not found. ' +
+              'Please install it: npm install @react-native-firebase/database'
+            )
+          }
         }
+        return serviceCache.database
       }
       return rnFirebase.database()
     },
@@ -123,16 +136,21 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     // Firestore service accessor
     firestore() {
       if (isModularAPI) {
-        try {
-          // eslint-disable-next-line global-require
-          const firestoreModule = require('@react-native-firebase/firestore')
-          return firestoreModule.getFirestore ? firestoreModule.getFirestore(firebaseApp) : firestoreModule.default(firebaseApp)
-        } catch (e) {
-          throw new Error(
-            '@react-native-firebase/firestore module not found. ' +
-            'Please install it: npm install @react-native-firebase/firestore'
-          )
+        if (!serviceCache.firestore) {
+          try {
+            // eslint-disable-next-line global-require
+            const firestoreModule = require('@react-native-firebase/firestore')
+            serviceCache.firestore = firestoreModule.getFirestore
+              ? firestoreModule.getFirestore(firebaseApp)
+              : firestoreModule.default(firebaseApp)
+          } catch (e) {
+            throw new Error(
+              '@react-native-firebase/firestore module not found. ' +
+              'Please install it: npm install @react-native-firebase/firestore'
+            )
+          }
         }
+        return serviceCache.firestore
       }
       return rnFirebase.firestore()
     },
@@ -140,16 +158,21 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     // Storage service accessor
     storage() {
       if (isModularAPI) {
-        try {
-          // eslint-disable-next-line global-require
-          const storageModule = require('@react-native-firebase/storage')
-          return storageModule.getStorage ? storageModule.getStorage(firebaseApp) : storageModule.default(firebaseApp)
-        } catch (e) {
-          throw new Error(
-            '@react-native-firebase/storage module not found. ' +
-            'Please install it: npm install @react-native-firebase/storage'
-          )
+        if (!serviceCache.storage) {
+          try {
+            // eslint-disable-next-line global-require
+            const storageModule = require('@react-native-firebase/storage')
+            serviceCache.storage = storageModule.getStorage
+              ? storageModule.getStorage(firebaseApp)
+              : storageModule.default(firebaseApp)
+          } catch (e) {
+            throw new Error(
+              '@react-native-firebase/storage module not found. ' +
+              'Please install it: npm install @react-native-firebase/storage'
+            )
+          }
         }
+        return serviceCache.storage
       }
       return rnFirebase.storage()
     }
@@ -166,15 +189,14 @@ export function createReactNativeCompatWrapper(rnFirebase) {
       // Skip if not available
     }
   } else {
-    // For modular API, use a getter to lazy-load
+    // For modular API v22+, ServerValue is available on the database instance itself
     Object.defineProperty(wrapper.database, 'ServerValue', {
       get() {
         try {
-          // eslint-disable-next-line global-require
-          const databaseModule = require('@react-native-firebase/database')
-          return {
-            TIMESTAMP: databaseModule.serverTimestamp ? databaseModule.serverTimestamp() : databaseModule.ServerValue?.TIMESTAMP
-          }
+          // Get the cached database instance
+          const dbInstance = wrapper.database()
+          // In v22, ServerValue is on the database instance
+          return dbInstance.ServerValue || { TIMESTAMP: null }
         } catch (e) {
           return { TIMESTAMP: null }
         }
@@ -194,15 +216,14 @@ export function createReactNativeCompatWrapper(rnFirebase) {
       // Skip if not available
     }
   } else {
-    // For modular API, use a getter to lazy-load
+    // For modular API v22+, FieldValue is available on the firestore instance itself
     Object.defineProperty(wrapper.firestore, 'FieldValue', {
       get() {
         try {
-          // eslint-disable-next-line global-require
-          const firestoreModule = require('@react-native-firebase/firestore')
-          return {
-            serverTimestamp: () => firestoreModule.serverTimestamp ? firestoreModule.serverTimestamp() : firestoreModule.FieldValue?.serverTimestamp()
-          }
+          // Get the cached firestore instance
+          const fsInstance = wrapper.firestore()
+          // In v22, FieldValue is on the firestore instance
+          return fsInstance.FieldValue || { serverTimestamp: () => null }
         } catch (e) {
           return { serverTimestamp: () => null }
         }
