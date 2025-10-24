@@ -86,8 +86,22 @@ export function createReactNativeCompatWrapper(rnFirebase) {
   // Cache service instances to avoid recreating them on every call
   const serviceCache = {}
 
-  // For v22+ modular API, we use the getAuth, getDatabase, etc. functions
-  // and cache the instances to avoid deprecation warnings from default exports
+  // For v22+ modular API, we must use the default exports (auth(), database(), etc.)
+  // because this library uses instance methods like auth().signInWithEmailAndPassword().
+  // The new modular API (getAuth, signInWithEmailAndPassword, etc.) uses standalone functions,
+  // not instance methods. We silence the deprecation warnings since this is a compatibility layer.
+  if (isModularAPI) {
+    // Silence deprecation warnings - this is the official way to suppress them
+    // See: https://rnfirebase.io/migrating-to-v22
+    /* eslint-disable no-undef */
+    if (typeof globalThis !== 'undefined') {
+      globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true
+    } else if (typeof global !== 'undefined') {
+      global.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true
+    }
+    /* eslint-enable no-undef */
+  }
+
   const wrapper = {
     _reactNativeFirebaseCompatWrapped: true,
     app: firebaseApp,
@@ -95,15 +109,13 @@ export function createReactNativeCompatWrapper(rnFirebase) {
     // Auth service accessor
     auth() {
       if (isModularAPI) {
-        // v22+ modular: Use getAuth() and cache the instance
+        // v22+: Must use default export for instance-method API compatibility
         if (!serviceCache.auth) {
           try {
             // eslint-disable-next-line global-require
             const authModule = require('@react-native-firebase/auth')
-            // Use getAuth if available, otherwise fall back to default
-            serviceCache.auth = authModule.getAuth
-              ? authModule.getAuth(firebaseApp)
-              : authModule.default(firebaseApp)
+            // Use default export which provides instance methods
+            serviceCache.auth = authModule.default(firebaseApp)
           } catch (e) {
             throw new Error(
               '@react-native-firebase/auth module not found. ' +
@@ -123,9 +135,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           try {
             // eslint-disable-next-line global-require
             const databaseModule = require('@react-native-firebase/database')
-            serviceCache.database = databaseModule.getDatabase
-              ? databaseModule.getDatabase(firebaseApp)
-              : databaseModule.default(firebaseApp)
+            serviceCache.database = databaseModule.default(firebaseApp)
           } catch (e) {
             throw new Error(
               '@react-native-firebase/database module not found. ' +
@@ -145,9 +155,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           try {
             // eslint-disable-next-line global-require
             const firestoreModule = require('@react-native-firebase/firestore')
-            serviceCache.firestore = firestoreModule.getFirestore
-              ? firestoreModule.getFirestore(firebaseApp)
-              : firestoreModule.default(firebaseApp)
+            serviceCache.firestore = firestoreModule.default(firebaseApp)
           } catch (e) {
             throw new Error(
               '@react-native-firebase/firestore module not found. ' +
@@ -167,9 +175,7 @@ export function createReactNativeCompatWrapper(rnFirebase) {
           try {
             // eslint-disable-next-line global-require
             const storageModule = require('@react-native-firebase/storage')
-            serviceCache.storage = storageModule.getStorage
-              ? storageModule.getStorage(firebaseApp)
-              : storageModule.default(firebaseApp)
+            serviceCache.storage = storageModule.default(firebaseApp)
           } catch (e) {
             throw new Error(
               '@react-native-firebase/storage module not found. ' +
